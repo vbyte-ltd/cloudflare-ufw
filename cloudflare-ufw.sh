@@ -1,9 +1,9 @@
 #!/bin/bash
-# Script that adds CloudFlare IP`s in UFW whitelist rules
+# Script that adds Cloudflare IP`s in UFW whitelist rules
 
 rm -f /tmp/cf_ips
 
-# Get IPs
+# Get Cloudflare IPs
 curl --silent --show-error --fail https://www.cloudflare.com/ips-v4 > /tmp/cf_ips
 echo "" >> /tmp/cf_ips
 curl --silent --show-error --fail https://www.cloudflare.com/ips-v6 >> /tmp/cf_ips
