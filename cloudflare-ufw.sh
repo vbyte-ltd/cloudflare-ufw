@@ -1,6 +1,12 @@
 #!/bin/bash
 # Script that adds Cloudflare IP`s in UFW whitelist rules
 
+
+## TODO
+# Function to add, list and remove IPs
+# catch exit codes
+# Logging
+
 rm -f /tmp/cf_ips
 
 # Get Cloudflare IPs
