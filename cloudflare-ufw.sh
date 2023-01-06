@@ -2,7 +2,7 @@
 # Script that adds Cloudflare IP`s in UFW whitelist rules
 
 
-## TODO
+## TODOs
 # Function to add, list and remove IPs
 # catch exit codes
 # Logging
