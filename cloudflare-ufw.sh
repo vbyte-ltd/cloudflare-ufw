@@ -1,6 +1,7 @@
 #!/bin/bash
 # Script that adds Cloudflare IP`s in UFW whitelist rules
 
+# Default variables
 cf_add=0
 cf_cleanup=0
 cf_port=0
@@ -9,8 +10,6 @@ cf_port_v_port='80,443'
 die() { echo "$*" >&2; exit 2; }  # complain to STDERR and exit with error
 needs_arg() { if [ -z "$OPTARG" ]; then die "No arg for --$OPT option"; fi; }
 
-## TODOs
-# Function to help, add, list and remove IPs
 cf_help () {
    echo -e "\nUsage: cloudflare-ufw.sh <--add|--cleanup> [--port=http|https]" 
 
