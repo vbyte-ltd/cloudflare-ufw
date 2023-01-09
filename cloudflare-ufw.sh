@@ -25,7 +25,6 @@ cf_help () {
 }
 
 cf_add () {
-	echo -e "cf_add function triggered"
 	# Get Cloudflare IPs
 	curl --silent --show-error --fail https://www.cloudflare.com/ips-v4 > /tmp/cloudflare_ufw_ips
 	echo "" >> /tmp/cloudflare_ufw_ips
@@ -49,6 +48,7 @@ cf_clean () {
 		ufw --force delete "$CF_removeIP"
 		CF_ips=$(ufw status numbered | grep "Cloudflare UFW")
 	done
+	# TODO: fix exit code, currently it's always 1 because of how I use while
 }
 
 cf_port_mapping () {
@@ -82,16 +82,7 @@ while getopts achp-: OPT; do
 done
 shift $((OPTIND-1)) # remove parsed options and args from $@ list
 
-#./cloudflare-ufw.sh --add true --ports 443 --cleanup true
-
-#echo "Debug:"
-#echo "Number of args: $#"
-#echo "cf_add: $cf_add"
-#echo "cf_cleanup: $cf_cleanup"
-#echo "cf_ports: $cf_ports  - $cf_ports_v"
-
 ## Start script
-echo "before: $cf_port_v_port"
 # Map --port option to real port
 if [ "$cf_port" -eq 1 ]; then
 	cf_port_mapping
@@ -106,5 +97,3 @@ fi
 if [ "$cf_cleanup" -eq 1 ]; then
 	cf_clean
 fi
-
-echo "After: $cf_port_v_port"
