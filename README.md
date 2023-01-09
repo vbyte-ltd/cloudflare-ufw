@@ -2,20 +2,20 @@
 
 Whitelist and manage Cloudflare IPs using UFW
 
-|Argument|Comment|
-|----------------------|---------------------------------------------------|
-| --add                | Add CloudFlare IP`s to whitelist                  |
-| --port=(http\|https) | Add CloudFlare IP`s to whitelist (specific port)  |
-| --cleanup            | Delete UFW rules                                  |
-| --help               | Print script help                                 |
+| Argument             | Comment                                              |
+|----------------------|------------------------------------------------------|
+| --add                | Add Cloudflare IP`s to whitelist                     |
+| --port=(http\|https) | Add Cloudflare IP`s to whitelist (specific port)     |
+| --cleanup            | Delete UFW rules containing 'Cloudflare UFW' comment |
+| --help               | Print script help                                    |
 
 
 ## Examples:
-Default usage (add all CloudFlare IP`s (IPv4 + IPv6) to Whitelist on all web ports (80+443)
+Default usage. Add all Cloudflare IP`s (IPv4 + IPv6) to Whitelist on all web ports (80+443)
 ```console
 ~/.cloudflare-ufw.sh --add
 ```
-Allow CloudFlare IP`s only to HTTPS port (443)
+Allow Cloudflare IP`s only to HTTPS port (443)
 ```console
 ~/.cloudflare-ufw.sh --add --port=https
 ````
@@ -25,6 +25,7 @@ Clean all UFW rules, created with comment 'Cloudflare UFW'
 ```
 
 ## TODO list:
+- ADD add Usage to README
 - ADD option --public
 - ADD option --port to work with --cleanup
 - ADD output: progress on adding or deleting ufw rules
