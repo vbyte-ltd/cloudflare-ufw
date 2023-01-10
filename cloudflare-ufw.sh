@@ -6,19 +6,20 @@ cf_add=0
 cf_cleanup=0
 cf_refresh=0
 cf_port=0
-cf_port_v_port='80,443'
+cf_port_value='80,443'
 
 die() { echo "$*" >&2; exit 2; }  # complain to STDERR and exit with error
 needs_arg() { if [ -z "$OPTARG" ]; then die "No arg for --$OPT option"; fi; }
 
 cf_help () {
-   echo -e "\nUsage: cloudflare-ufw.sh <--add|--cleanup> [--port=http|https]" 
+   echo -e "\nUsage: cloudflare-ufw.sh <--add|--cleanup|--refresh> [--port=http|https]" 
 
    # Display Help
    echo 
    echo -e "\033[1mRequired arguments:\033[0m"
    echo "  --add - add cloudflare IPs to UFW"
    echo "  --cleanup - clean up all added cloudflare records with comment 'Cloudflare UFW'"
+   echo '  --refresh - Refresh UFW rules (removes IP`s that no longer belong to Cloudflare)'
    echo 
    echo -e "\033[1mOPTIONS:\033[0m"
    echo "  --port=(http|https), default - http (port 80) and https (port 443)"
@@ -37,36 +38,43 @@ cf_add () {
 	fi
 
 	# Loop IPs to add to UFW
-	for cfip in $(cat /tmp/cloudflare_ufw_ips); do ufw allow proto tcp from "$cfip" to any port $cf_port_v_port comment 'Cloudflare UFW'; done
+	for cfip in $(cat /tmp/cloudflare_ufw_ips); do ufw allow proto tcp from "$cfip" to any port $cf_port_value comment 'Cloudflare UFW ('"$cf_port_value"')'; done
 }
 
 cf_clean () {
-	CF_ips=$(ufw status numbered | grep "Cloudflare UFW")
-	# Loop remove CF IPs
-	while [ -n "$CF_ips" ]; do
-		CF_removeIP=$(ufw status numbered | grep -m1 "Cloudflare UFW" | awk -F"[][]" '{print $2}')
-		ufw --force delete "$CF_removeIP"
-		CF_ips=$(ufw status numbered | grep "Cloudflare UFW")
+	if [ "$cf_port" -eq 1 ]; then
+		# add brackets and port to grep
+		grep_port="($cf_port_value)"
+	else
+		# no port defined, empty grep string
+		grep_port=""
+	fi
+
+	# Count number of times to run ufw delete
+	counter=$(ufw status numbered | grep -c "Cloudflare UFW $grep_port")
+
+	until [ "$counter" -eq 0 ]; do
+			CF_removeIP=$(ufw status numbered | grep -m1 "Cloudflare UFW $grep_port" | awk -F"[][]" '{print $2}')
+			ufw --force delete "$CF_removeIP"
+			((counter--))
 	done
-	# TODO: fix exit code, currently it's always 1 because of how I use while
 }
 
 cf_refresh () {
-	# TODO: Allow --port to function
-	ufw allow 80,443/tcp comment 'CF UFW Open'
+	ufw allow "$cf_port_value"/tcp comment 'CF UFW Open'
 	cf_clean
 	cf_add
-	ufw delete allow 80,443/tcp comment 'CF UFW Open'
+	ufw delete allow "$cf_port_value"/tcp comment 'CF UFW Open'
 }
 
 cf_port_mapping () {
 	if [ "$cf_port" -eq 1 ]; then
-		if [ "$cf_port_v" == "http" ]; then
-			cf_port_v_port='80'
-		elif [ "$cf_port_v" == "https" ]; then
-			cf_port_v_port='443'
+		if [ "$cf_port_value" == "http" ]; then
+			cf_port_value='80'
+		elif [ "$cf_port_value" == "https" ]; then
+			cf_port_value='443'
 		else
-			die "Wrong value '$cf_port_v' for arg '--port'"
+			die "Wrong value '$cf_port_value' for arg '--port'"
 		fi
 	fi
 }
@@ -83,7 +91,7 @@ while getopts achpr-: OPT; do
 		a | add ) cf_add=1 ;;
 		c | cleanup ) cf_cleanup=1 ;;
 		r | refresh ) cf_refresh=1 ;;
-		p | port ) needs_arg; cf_port=1; cf_port_v=$OPTARG ;; 
+		p | port ) needs_arg; cf_port=1; cf_port_value=$OPTARG ;; 
 		h | help ) cf_help ; exit 0 ;;
 		??* ) die "Illegal option --$OPT" ;;  # bad long option
 		? ) cf_help ; exit 2 ;;  # bad short option (error reported via getopts)
