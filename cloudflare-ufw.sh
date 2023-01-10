@@ -1,16 +1,16 @@
 #!/bin/bash
 # Script that adds Cloudflare IP`s in UFW whitelist rules
 
+# Default variables
 cf_add=0
 cf_cleanup=0
+cf_refresh=0
 cf_port=0
 cf_port_v_port='80,443'
 
 die() { echo "$*" >&2; exit 2; }  # complain to STDERR and exit with error
 needs_arg() { if [ -z "$OPTARG" ]; then die "No arg for --$OPT option"; fi; }
 
-## TODOs
-# Function to help, add, list and remove IPs
 cf_help () {
    echo -e "\nUsage: cloudflare-ufw.sh <--add|--cleanup> [--port=http|https]" 
 
@@ -25,7 +25,6 @@ cf_help () {
 }
 
 cf_add () {
-	echo -e "cf_add function triggered"
 	# Get Cloudflare IPs
 	curl --silent --show-error --fail https://www.cloudflare.com/ips-v4 > /tmp/cloudflare_ufw_ips
 	echo "" >> /tmp/cloudflare_ufw_ips
@@ -49,6 +48,15 @@ cf_clean () {
 		ufw --force delete "$CF_removeIP"
 		CF_ips=$(ufw status numbered | grep "Cloudflare UFW")
 	done
+	# TODO: fix exit code, currently it's always 1 because of how I use while
+}
+
+cf_refresh () {
+	# TODO: Allow --port to function
+	ufw allow 80,443/tcp comment 'CF UFW Open'
+	cf_clean
+	cf_add
+	ufw delete allow 80,443/tcp comment 'CF UFW Open'
 }
 
 cf_port_mapping () {
@@ -64,7 +72,7 @@ cf_port_mapping () {
 }
 
 ## Long options getopts
-while getopts achp-: OPT; do
+while getopts achpr-: OPT; do
   # support long options: https://stackoverflow.com/a/28466267/519360
   if [ "$OPT" = "-" ]; then   # long option: reformulate OPT and OPTARG
     OPT="${OPTARG%%=*}"       # extract long option name
@@ -74,6 +82,7 @@ while getopts achp-: OPT; do
 	case "$OPT" in
 		a | add ) cf_add=1 ;;
 		c | cleanup ) cf_cleanup=1 ;;
+		r | refresh ) cf_refresh=1 ;;
 		p | port ) needs_arg; cf_port=1; cf_port_v=$OPTARG ;; 
 		h | help ) cf_help ; exit 0 ;;
 		??* ) die "Illegal option --$OPT" ;;  # bad long option
@@ -82,16 +91,7 @@ while getopts achp-: OPT; do
 done
 shift $((OPTIND-1)) # remove parsed options and args from $@ list
 
-#./cloudflare-ufw.sh --add true --ports 443 --cleanup true
-
-#echo "Debug:"
-#echo "Number of args: $#"
-#echo "cf_add: $cf_add"
-#echo "cf_cleanup: $cf_cleanup"
-#echo "cf_ports: $cf_ports  - $cf_ports_v"
-
 ## Start script
-echo "before: $cf_port_v_port"
 # Map --port option to real port
 if [ "$cf_port" -eq 1 ]; then
 	cf_port_mapping
@@ -107,4 +107,7 @@ if [ "$cf_cleanup" -eq 1 ]; then
 	cf_clean
 fi
 
-echo "After: $cf_port_v_port"
+# Refresh function
+if [ "$cf_refresh" -eq 1 ]; then
+	cf_refresh
+fi
