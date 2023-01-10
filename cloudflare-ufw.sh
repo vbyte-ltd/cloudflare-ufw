@@ -4,6 +4,7 @@
 # Default variables
 cf_add=0
 cf_cleanup=0
+cf_refresh=0
 cf_port=0
 cf_port_v_port='80,443'
 
@@ -50,6 +51,14 @@ cf_clean () {
 	# TODO: fix exit code, currently it's always 1 because of how I use while
 }
 
+cf_refresh () {
+	# TODO: Allow --port to function
+	ufw allow 80,443/tcp comment 'CF UFW Open'
+	cf_clean
+	cf_add
+	ufw delete allow 80,443/tcp comment 'CF UFW Open'
+}
+
 cf_port_mapping () {
 	if [ "$cf_port" -eq 1 ]; then
 		if [ "$cf_port_v" == "http" ]; then
@@ -63,7 +72,7 @@ cf_port_mapping () {
 }
 
 ## Long options getopts
-while getopts achp-: OPT; do
+while getopts achpr-: OPT; do
   # support long options: https://stackoverflow.com/a/28466267/519360
   if [ "$OPT" = "-" ]; then   # long option: reformulate OPT and OPTARG
     OPT="${OPTARG%%=*}"       # extract long option name
@@ -73,6 +82,7 @@ while getopts achp-: OPT; do
 	case "$OPT" in
 		a | add ) cf_add=1 ;;
 		c | cleanup ) cf_cleanup=1 ;;
+		r | refresh ) cf_refresh=1 ;;
 		p | port ) needs_arg; cf_port=1; cf_port_v=$OPTARG ;; 
 		h | help ) cf_help ; exit 0 ;;
 		??* ) die "Illegal option --$OPT" ;;  # bad long option
@@ -95,4 +105,9 @@ fi
 # Clean function
 if [ "$cf_cleanup" -eq 1 ]; then
 	cf_clean
+fi
+
+# Refresh function
+if [ "$cf_refresh" -eq 1 ]; then
+	cf_refresh
 fi
