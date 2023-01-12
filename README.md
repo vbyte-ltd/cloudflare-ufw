@@ -40,10 +40,14 @@ Delete all existing Cloudflare UFW rules and add Cloudflare IP`s to whitelist fo
 
 ## TODO list:
 - ADD add Usage to README
+- prerequirements - allowed ssh (ufw allow ssh), Set default rules incomming/outgoing, enabled UFW
+- ufw status "disabled" = echo "Rules added, but UFW is disabled. Please review rules and enable UFW"
+- check if ufw is installed
 
 - ADD option --public combined with --cleanup and --port
 - ADD option --cron - Add cronjob to the current user
 - ADD option --dry-run - Show output of commands that will be run
+- ADD option --debug - Output script variables
 
 - ADD output: progress on adding or deleting ufw rules
 - ADD output: Total CF rules from script: XXX
