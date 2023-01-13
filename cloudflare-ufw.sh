@@ -1,5 +1,4 @@
 #!/bin/bash
-# Script that adds Cloudflare IP`s in UFW whitelist rules
 
 # Default variables
 cf_add=0
@@ -39,24 +38,24 @@ cf_add () {
 	curl --silent --show-error --fail https://www.cloudflare.com/ips-v6 >> /tmp/cloudflare_ufw_ips
 
 	if [ ! -s /tmp/cloudflare_ufw_ips ]; then
-		echo -e "ERROR: /tmp/cloudflare_ufw_ips File is empty. Problem while getting Cloudflare IPs!"
-		# TODO die
-		exit 1
+		die "ERROR: /tmp/cloudflare_ufw_ips file is empty. Problem while getting Cloudflare IPs!"
 	fi
 
 	counter_added=0
 	counter_skipped=0
 	add_output_counter=$(wc -l < /tmp/cloudflare_ufw_ips)
+	# adding +1 because of wc -l can't get last line without new line at the end
 	((add_output_counter++))
 
+	echo -e "Currently Cloudflare provided us ${BLUE}$add_output_counter${NC} IP ranges"
+
 	# Loop IPs to add to UFW
-	echo -e "Total number of Cloudflare entries: $add_output_counter"
 	for cfip in $(cat /tmp/cloudflare_ufw_ips); do
 		result_add=$(ufw allow proto tcp from "$cfip" to any port "$cf_port_value" comment 'Cloudflare UFW ('"$cf_port_value"')')
 		#sleep 0.2
 		if [ "$result_add" = 'Rule added' ] || [ "$result_add" = 'Rule added (v6)' ]; then
 			((counter_added++))
-            echo -n -e "Rules added: ${GREEN}"$counter_added"${NC}\r"
+            echo -n -e "Rules added: ${GREEN}$counter_added${NC}\r"
         else
 			((counter_skipped++))
 		fi
@@ -67,23 +66,18 @@ cf_add () {
 }
 
 cf_clean () {
-	if [ "$cf_port" -eq 1 ]; then
-		# add brackets and port to grep
-		grep_port="($cf_port_value)"
-	else
-		# no port defined, empty grep string
-		grep_port=""
-	fi
+	# Make grep port string
+	[ "$cf_port" -eq 1 ] && grep_port_str="($cf_port_value)"
 
 	# Count number of times to run ufw delete
-	counter=$(ufw status numbered | grep -c "Cloudflare UFW $grep_port")
+	counter=$(ufw status numbered | grep -c "Cloudflare UFW $grep_port_str")
 	clean_output_counter=$counter
 
 	until [ "$counter" -eq 0 ]; do
-			CF_removeIP=$(ufw status numbered | grep -m1 "Cloudflare UFW $grep_port" | awk -F"[][]" '{print $2}')
+			CF_removeIP=$(ufw status numbered | grep -m1 "Cloudflare UFW $grep_port_str" | awk -F"[][]" '{print $2}')
 			ufw --force delete "$CF_removeIP" &> /dev/null
 			((counter--))
-			echo -n -e "Remaining rules to delete: ${RED}"$counter"${NC} of $clean_output_counter \r"
+			echo -n -e "Remaining rules to delete: ${RED}$counter${NC} of $clean_output_counter \r"
 	done
 
 	# Erase the line and move cursor 2 lines up
@@ -169,7 +163,7 @@ if [ "$cf_refresh" -eq 1 ]; then
 fi
 
 ## Output results
-echo -e "\n${BOLD_GREEN}Result:${NC}"
+echo -e "\n${BOLD_GREEN}RESULT:${NC}"
 
 if [ "$cf_cleanup" -eq 1 ]; then
 	echo -e "UFW rules deleted: ${RED}$clean_output_counter${NC}"
