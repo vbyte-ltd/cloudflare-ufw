@@ -14,28 +14,33 @@ Usage: cloudflare-ufw.sh <--add|--cleanup|--refresh> [--port=http|https]
 | Options              | Comment                                                               |
 |----------------------|-----------------------------------------------------------------------|
 | --port=(http\|https) | Add Cloudflare IP`s to whitelist (specific port)                      |
-
+| --debug	       | Debug output							       |
 
 ## Examples:
 Default usage. Add all Cloudflare IP`s (IPv4 + IPv6) to Whitelist on all web ports (80+443)
 ```console
-~/.cloudflare-ufw.sh --add
+~/cloudflare-ufw.sh --add
 ```
 Allow Cloudflare IP`s only to HTTPS port (443)
 ```console
-~/.cloudflare-ufw.sh --add --port=https
+~/cloudflare-ufw.sh --add --port=https
 ````
 Clean all UFW rules, created with comment 'Cloudflare UFW'
 ```console
-~/.cloudflare-ufw.sh --cleanup
+~/cloudflare-ufw.sh --cleanup
 ```
 Refresh UFW rules (Temporary allow all traffic to web ports (80+443), delete all existing Cloudflare rules and readd them from Cloudflare list)
 ```console
-~/.cloudflare-ufw.sh --refresh
+~/cloudflare-ufw.sh --refresh
 ```
 Delete all existing Cloudflare UFW rules and add Cloudflare IP`s to whitelist for defined Web ports - http (80), https (443) 
 ```console
-~/.cloudflare-ufw.sh --refresh --port=(http|https)
+~/cloudflare-ufw.sh --refresh --port=(http|https)
+```
+
+Debug executed commands by using "--debug" option
+```console
+~/cloudflare-ufw.sh --refresh --debug
 ```
 
 ## TODO list:
@@ -48,7 +53,6 @@ Delete all existing Cloudflare UFW rules and add Cloudflare IP`s to whitelist fo
 - ADD option --public combined with --cleanup and --port
 - ADD option --cron - Add cronjob to the current user
 - ADD option --dry-run - Show output of commands that will be run
-- ADD option --debug - Output script variables
 
 - Catch exit codes on command errors
 - Logging
