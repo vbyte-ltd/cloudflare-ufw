@@ -145,6 +145,9 @@ done
 shift $((OPTIND-1)) # remove parsed options and args from $@ list
 
 ## Start script
+# Add PATH, otherwise running it in crontab can't find ufw binary
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
+
 # Map --port option to real port
 if [ "$cf_port" -eq 1 ]; then
         cf_port_mapping
