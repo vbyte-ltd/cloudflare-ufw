@@ -42,9 +42,9 @@ cf_help () {
 cf_add () {
         debug_log "Cloudflare IPs file: /tmp/cloudflare_ufw_ips"
         # Get Cloudflare IPs
-        curl --silent --show-error --fail https://www.cloudflare.com/ips-v4 > /tmp/cloudflare_ufw_ips
+        curl --silent --show-error --fail https://www.cloudflare.com/ips-v4/ > /tmp/cloudflare_ufw_ips
         echo "" >> /tmp/cloudflare_ufw_ips
-        curl --silent --show-error --fail https://www.cloudflare.com/ips-v6 >> /tmp/cloudflare_ufw_ips
+        curl --silent --show-error --fail https://www.cloudflare.com/ips-v6/ >> /tmp/cloudflare_ufw_ips
 
         if [ ! -s /tmp/cloudflare_ufw_ips ]; then
                 die "ERROR: /tmp/cloudflare_ufw_ips file is empty. Problem while getting Cloudflare IPs!"
